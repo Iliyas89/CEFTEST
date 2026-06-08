@@ -1,0 +1,151 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,800;0,900;1,900&display=swap');
+
+.wrapper {
+  position: absolute;
+  bottom: 30px;
+  right: -20px;
+  width: 460px;
+  height: 280px;
+  font-family: 'Montserrat', sans-serif;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+/* --- ЛЕВЫЙ ЦИФРОВОЙ БЛОК --- */
+.mainInfoBlock {
+  position: absolute;
+  left: 110px;        
+  top: 50px;          
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+}
+
+/* Строка бензина */
+.fuelRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 2px; 
+}
+
+.fuelIcon {
+  width: 18px;
+  height: 18px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
+.fuelText {
+  font-size: 14px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Главный контейнер для скорости */
+.speedFlexContainer {
+  display: flex;
+  align-items: flex-end; 
+  gap: 5px;              
+}
+
+.speedValue {
+  font-size: 84px;
+  font-weight: 900;
+  font-style: italic;
+  color: #ffffff;
+  line-height: 68px; 
+  margin: 0;
+  text-shadow: 0px 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.kmhLabel {
+  font-size: 16px;
+  font-weight: 900;
+  font-style: italic;
+  color: #ffffff;
+  text-transform: lowercase;
+  margin-bottom: 4px; 
+  text-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Блок одометра под скоростью */
+.odom {
+  margin-top: 10px;   
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 12px;
+  border-radius: 5px;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* --- ПРАВАЯ ЧАСТЬ: МАШИНА --- */
+.carSection {
+  position: absolute;
+  right: 20px;
+  top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 110px;
+}
+
+.carUiImg {
+  width: 100%;
+  height: 150px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.5));
+}
+
+.carHpText {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+}
+
+/* --- НИЖНЯЯ ПАНЕЛЬ ИКОНОК --- */
+.bottomBar {
+  position: absolute;
+  bottom: 0;
+  left: 15px;
+  background: #2b2a2e;
+  padding: 6px 20px;
+  border-radius: 5px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  transform: skewX(-18deg); 
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.innerIcons {
+  transform: skewX(18deg); 
+  display: flex;
+  gap: 12px;
+}
+
+.iconCircle {
+  width: 36px;
+  height: 36px;
+  background: #1b1a1c;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.iconCircle img {
+  width: 20px;
+  height: 20px;
+  opacity: 0.15;
+}
+
+/* --- СВЕЧЕНИЯ И ЦВЕТА АКТИВНЫХ КНОПОК --- */
+.activeOrange img { opacity: 1; filter: drop-shadow(0 0 6px #ff9500); }
+.activeBlue img   { opacity: 1; filter: drop-shadow(0 0 6px #007aff); } /* Ровное синее свечение */
+.activeGreen img  { opacity: 1; filter: drop-shadow(0 0 6px #4cd964); }
+.activeRed img    { opacity: 1; filter: drop-shadow(0 0 6px #ff3b30); }

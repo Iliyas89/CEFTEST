@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+  padding: 0;
+  /* ВРЕМЕННО: ставим тёмный фон для тестов в браузере */
+  background-color: #1a191c; 
+  
+  /* Или можно вообще бахнуть скриншот из GTA на задний план: */
+  /* background-image: url('https://w.forfun.com/fetch/ef/efb4da3690d7494f6c449195a6ee980b.jpeg'); */
+  /* background-size: cover; */
+  
+  color: white;
+  font-family: sans-serif;
+  overflow: hidden;
+}
