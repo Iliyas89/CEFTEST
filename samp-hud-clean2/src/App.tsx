@@ -25,7 +25,7 @@ declare global {
 }
 
 export default function App() {
-  const [showHud, setShowHud] = useState<boolean>(true);
+  const [showHud, setShowHud] = useState<boolean>(false);
   const [showSpeedometer, setShowSpeedometer] = useState<boolean>(false);
   const [showInventory, setShowInventory] = useState<boolean>(false);
 
