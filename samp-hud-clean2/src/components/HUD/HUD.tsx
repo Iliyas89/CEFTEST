@@ -10,6 +10,18 @@ import armorSvg from './assets/armor.svg';
 import burgerSvg from './assets/burger.svg';
 import dollarSvg from './assets/dollar.svg';
 
+// Описываем интерфейс принимаемых пропсов от App.tsx
+interface HudProps {
+  health?: number;
+  armor?: number;
+  hunger?: number;
+  money?: number;
+  playerId?: number;
+  serverIndex?: number;
+  serverName?: string;
+  online?: number;
+}
+
 // Функция для расчёта заполнения кругового прогресс-бара
 const calculateOffset = (value: number) => {
   const radius = 25.5;
@@ -22,16 +34,16 @@ const formatMoney = (amount: number) => {
   return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 };
 
-export default function HUD() {
-  // Динамические состояния для параметров игрока и сервера
-  const [health, setHealth] = useState<number>(100);
-  const [armor, setArmor] = useState<number>(0); // По умолчанию броня 0
-  const [hunger, setHunger] = useState<number>(100);
-  const [serverIndex, setServerIndex] = useState<number>(1);
-  const [serverName, setServerName] = useState<string>("AVALON"); 
-  const [playerId, setPlayerId] = useState<number>(0);
-  const [money, setMoney] = useState<number>(0);
-  const [online, setOnline] = useState<number>(1); 
+export default function HUD(props: HudProps) {
+  // Динамические состояния для параметров игрока и сервера с дефолтными значениями из пропсов
+  const [health, setHealth] = useState<number>(props.health ?? 100);
+  const [armor, setArmor] = useState<number>(props.armor ?? 0);
+  const [hunger, setHunger] = useState<number>(props.hunger ?? 100);
+  const [serverIndex, setServerIndex] = useState<number>(props.serverIndex ?? 1);
+  const [serverName, setServerName] = useState<string>(props.serverName ?? "AVALON"); 
+  const [playerId, setPlayerId] = useState<number>(props.playerId ?? 0);
+  const [money, setMoney] = useState<number>(props.money ?? 0);
+  const [online, setOnline] = useState<number>(props.online ?? 1); 
 
   // Стейты для анимации изменения денег
   const [moneyChange, setMoneyChange] = useState<number | null>(null);
@@ -40,6 +52,18 @@ export default function HUD() {
   const [prevMoney, setPrevMoney] = useState<number>(money);
 
   const circumference = 2 * Math.PI * 25.5;
+
+  // Реактивно обновляем внутренние стейты, когда данные прилетают сверху из App.tsx (из Pawn)
+  useEffect(() => {
+    if (props.health !== undefined) setHealth(props.health);
+    if (props.armor !== undefined) setArmor(props.armor);
+    if (props.hunger !== undefined) setHunger(props.hunger);
+    if (props.serverIndex !== undefined) setServerIndex(props.serverIndex);
+    if (props.serverName !== undefined) setServerName(props.serverName);
+    if (props.playerId !== undefined) setPlayerId(props.playerId);
+    if (props.money !== undefined) setMoney(props.money);
+    if (props.online !== undefined) setOnline(props.online);
+  }, [props]);
 
   // Отслеживаем изменения баланса и запускаем анимацию вылета
   useEffect(() => {
@@ -59,7 +83,6 @@ export default function HUD() {
     // ГЛОБАЛЬНЫЙ МОСТ ДЛЯ СЕРВЕРА (Принимает данные от Pawn)
     const handleHUDUpdate = (dataJson: string | object) => {
       try {
-        // Защита: если плагин передал уже готовый объект, не парсим его как строку
         const data = typeof dataJson === 'string' ? JSON.parse(dataJson) : dataJson;
         
         if (data.health !== undefined) setHealth(data.health);
@@ -112,15 +135,12 @@ export default function HUD() {
         }
       }, 3000);
     } else {
-      // Если мы в игре, запускаем локальный таймер-клиент, который будет каждую секунду
-      // дергать встроенные свойства Chromium для получения актуального ХП/Брони персонажа,
-      // если твой плагин это поддерживает через window.cef
       if ((window as any).cef && (window as any).cef.getHp) {
         testInterval = setInterval(() => {
           const hp = (window as any).cef.getHp();
           const arm = (window as any).cef.getArmour();
           handleLocalStatsUpdate(hp, arm);
-        }, 200); // 200мс — идеальный баланс между плавностью и производительностью
+        }, 200);
       }
     }
 
