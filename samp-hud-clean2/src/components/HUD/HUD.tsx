@@ -78,7 +78,7 @@ export default function HUD(props: HudProps) {
 
   useEffect(() => {
     // Проверяем, запущены ли мы внутри игры (samp-ef / CEF)
-    const isRunningInGame = true; // принудительно отключаем симулятор
+    const isRunningInGame = (window as any).cef !== undefined || (window as any).mp !== undefined;
 
     // ГЛОБАЛЬНЫЙ МОСТ ДЛЯ СЕРВЕРА (Принимает данные от Pawn)
     const handleHUDUpdate = (dataJson: string | object) => {
