@@ -2,8 +2,8 @@
 
 .wrapper {
   position: absolute;
-  bottom: 30px;
-  right: -20px;
+  bottom: -30px;       /* Было 30px — опустили ниже к самому краю экрана */
+  right: -75px;       /* Было -20px — сильнее прижали в правый бок */
   width: 460px;
   height: 280px;
   font-family: 'Montserrat', sans-serif;
@@ -146,6 +146,6 @@
 
 /* --- СВЕЧЕНИЯ И ЦВЕТА АКТИВНЫХ КНОПОК --- */
 .activeOrange img { opacity: 1; filter: drop-shadow(0 0 6px #ff9500); }
-.activeBlue img   { opacity: 1; filter: drop-shadow(0 0 6px #007aff); } /* Ровное синее свечение */
+.activeBlue img   { opacity: 1; filter: drop-shadow(0 0 6px #007aff); } 
 .activeGreen img  { opacity: 1; filter: drop-shadow(0 0 6px #4cd964); }
 .activeRed img    { opacity: 1; filter: drop-shadow(0 0 6px #ff3b30); }

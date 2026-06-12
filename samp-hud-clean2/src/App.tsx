@@ -14,13 +14,26 @@ interface HudData {
   online?: number;
 }
 
+interface SpeedoData {
+  speed: number;
+  fuel: number;
+  mileage: number;
+  hp: number;
+  turnLeft: boolean;
+  lights: boolean;
+  engine: boolean;
+  parking: boolean;
+  locked: boolean;
+  turnRight: boolean;
+}
+
 declare global {
   interface Window {
     toggleHud?: (status: boolean) => void;
     toggleSpeedometer?: (status: boolean) => void;
     toggleInventory?: (status: boolean) => void;
     updateHUD?: (dataJson: string | object) => void;
-    updateLocalStats?: (localHp: number, localArmor: number) => void;
+    updateSpeedometer?: (dataJson: string | object) => void;
     cef?: any;
   }
 }
@@ -41,40 +54,58 @@ export default function App() {
     online: 1
   });
 
+  const [speedoData, setSpeedoData] = useState<SpeedoData>({
+    speed: 0,
+    fuel: 100,
+    mileage: 0,
+    hp: 100,
+    turnLeft: false,
+    lights: false,
+    engine: false,
+    parking: false,
+    locked: false,
+    turnRight: false
+  });
+
   useEffect(() => {
-    // 1. Прямые вызовы через window (оставляем для обратной совместимости или ручных тестов)
     window.toggleHud = (status: boolean) => setShowHud(status);
     window.toggleSpeedometer = (status: boolean) => setShowSpeedometer(status);
     window.toggleInventory = (status: boolean) => setShowInventory(status);
 
-    // Функция парсинга и обновления данных HUD
     const processHudData = (dataJsonString: string | object) => {
       try {
         const parsedData: HudData = typeof dataJsonString === 'string' 
           ? JSON.parse(dataJsonString) 
           : dataJsonString;
-        console.log("[CEF] Данные HUD успешно обновлены сервером:", parsedData);
-        
         setHudData(prev => ({ ...prev, ...parsedData }));
       } catch (error) {
         console.error("Ошибка парсинга JSON в updateHUD:", error);
       }
     };
 
-    window.updateHUD = processHudData;
+    const processSpeedoData = (dataJsonString: string | object) => {
+      try {
+        const parsedData: Partial<SpeedoData> = typeof dataJsonString === 'string' 
+          ? JSON.parse(dataJsonString) 
+          : dataJsonString;
+        setSpeedoData(prev => ({ ...prev, ...parsedData }));
+      } catch (error) {
+        console.error("Ошибка парсинга JSON в updateSpeedometer:", error);
+      }
+    };
 
-    // Нативные функции-обработчики, которые корректно разбирают аргументы от плагина
+    window.updateHUD = processHudData;
+    window.updateSpeedometer = processSpeedoData;
+
     const parseCefStatus = (rawVal: any): boolean => {
       const val = Array.isArray(rawVal) ? rawVal[0] : rawVal;
       return val === 1 || val === true || val === "1";
     };
 
-    // === СИСТЕМНЫЙ ИНТЕРВАЛ ДЛЯ ИНИЦИАЛИЗАЦИИ ВЗАИМОДЕЙСТВИЯ С CEF ===
     let checkCefInterval = setInterval(() => {
       if (window.cef) {
         console.log("[App] Плагин CEF успешно обнаружен в процессе игры!");
         
-        // ПОДПИСКА НА КАСТОМНЫЕ СОБЫТИЯ СЕРВЕРА (cef_emit_event) НАПРЯМУЮ ЧЕРЕЗ ПЛАГИН
         window.cef.on('toggleHud', (rawVal: any) => {
           setShowHud(parseCefStatus(rawVal));
         });
@@ -88,11 +119,15 @@ export default function App() {
           setShowSpeedometer(parseCefStatus(rawVal));
         });
 
+        window.cef.on('updateSpeedometer', (rawData: any) => {
+          const data = Array.isArray(rawData) ? rawData[0] : rawData;
+          if (data) processSpeedoData(data);
+        });
+
         window.cef.on('toggleInventory', (rawVal: any) => {
           setShowInventory(parseCefStatus(rawVal));
         });
 
-        // СИСТЕМНЫЕ ОБНОВЛЕНИЯ ХАРАКТЕРИСТИК (game:data:playerStats)
         const onPlayerStats = (hp: number, _max_hp: number, arm: number, _breath: number, _wanted: number, _weapon: number, _ammo: number, _max_ammo: number, money: number, _speed: number) => {
           setHudData(prev => ({
             ...prev,
@@ -105,41 +140,52 @@ export default function App() {
         window.cef.on('game:data:playerStats', onPlayerStats);
         window.cef.emit('game:data:pollPlayerStats', true, 50);
         
-        // Уведомляем сервер, что подписки оформлены и фронтенд готов на 100%
         window.cef.emit("OnCefInterfaceReady");
         
         clearInterval(checkCefInterval);
       }
     }, 100);
 
-
-    // === СИМУЛЯТОР ДЛЯ ДЕВЕЛОПМЕНТА (ЛОКАЛЬНЫЙ БРАУЗЕР) ===
+    // === СИМУЛЯТОР ДЛЯ ТЕСТА В БРАУЗЕРЕ ===
     let simInterval: any = null;
+    let iconCounter = 0;
     const isBrowserTesting = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     
     if (isBrowserTesting && !window.cef) {
-      console.log("[App] Включена симуляция для теста в браузере. Автоматически показываем HUD.");
+      console.log("[App] Включена симуляция HUD и спидометра в браузере.");
       setShowHud(true);
+      setShowSpeedometer(true); // Автоматически показываем спидометр в Хроме для теста
 
       simInterval = setInterval(() => {
-        setHudData(prev => ({
-          ...prev,
-          hunger: Math.max(10, (prev.hunger ?? 100) - 1)
+        setHudData(prev => ({ ...prev, hunger: Math.max(10, (prev.hunger ?? 100) - 1) }));
+        
+        setSpeedoData(prev => ({
+          speed: Math.floor(Math.random() * 40) + 80,
+          fuel: prev.fuel > 10 ? prev.fuel - 1 : 100,
+          mileage: prev.mileage + 1,
+          hp: Math.floor(Math.random() * 6) + 95,
+          turnLeft: iconCounter === 0,
+          lights: iconCounter === 1,
+          engine: iconCounter === 2,
+          parking: iconCounter === 3,
+          locked: iconCounter === 4,
+          turnRight: iconCounter === 5,
         }));
-      }, 5000);
+
+        iconCounter = (iconCounter + 1) % 6;
+      }, 2000);
     }
 
-    // === ОЧИСТКА ===
     return () => {
       clearInterval(checkCefInterval);
       if (simInterval) clearInterval(simInterval);
       
-      // Сбрасываем подписки, если объект CEF существует во время релоада
       if (window.cef) {
         try {
           window.cef.off('toggleHud');
           window.cef.off('updateHUD');
           window.cef.off('toggleSpeedometer');
+          window.cef.off('updateSpeedometer');
           window.cef.off('toggleInventory');
           window.cef.off('game:data:playerStats');
         } catch(e) {
@@ -151,6 +197,7 @@ export default function App() {
       delete window.toggleSpeedometer;
       delete window.toggleInventory;
       delete window.updateHUD;
+      delete window.updateSpeedometer;
     };
   }, []);
 
@@ -172,7 +219,18 @@ export default function App() {
       )}
       {showSpeedometer && (
         <div style={{ position: 'absolute', bottom: '50px', right: '50px', pointerEvents: 'none', zIndex: 2 }}>
-          <Speedometer />
+          <Speedometer 
+            speed={speedoData.speed}
+            fuel={speedoData.fuel}
+            mileage={speedoData.mileage}
+            hp={speedoData.hp}
+            turnLeft={speedoData.turnLeft}
+            lights={speedoData.lights}
+            engine={speedoData.engine}
+            parking={speedoData.parking}
+            locked={speedoData.locked}
+            turnRight={speedoData.turnRight}
+          />
         </div>
       )}
       {showInventory && (

@@ -55,11 +55,13 @@ export default function HUD(props: HudProps) {
 
   const circumference = 2 * Math.PI * 25.5;
 
+  // Изменили координаты пути C, чтобы поднять волны повыше (примерно до 45-50% круга)
   const SmoothWave = ({ colorClass }: { colorClass: string }) => (
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={`${styles.smoothWaveSvg} ${colorClass}`}>
-      <path d="M0,65 C30,55 70,75 100,65 L100,100 L0,100 Z" />
-    </svg>
-  );
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={`${styles.smoothWaveSvg} ${colorClass}`}>
+    {/* Поменяли 48/38/58 на 55/45/65, чтобы опустить верхнюю точку ровно до 45% высоты круга */}
+    <path d="M0,55 C30,45 70,65 100,55 L100,100 L0,100 Z" />
+  </svg>
+);
 
   return (
     <div className={styles.root}>
@@ -125,10 +127,12 @@ export default function HUD(props: HudProps) {
 
       <div className={styles.footer}>
         <img src={dollarSvg} className={styles.moneyIcon} alt="$" />
-        <span className={styles.moneyText}>{formatMoney(props.money ?? 0)} $</span>
+        {/* Убрали знак доллара из текстовой строки */}
+        <span className={styles.moneyText}>{formatMoney(props.money ?? 0)}</span>
         {moneyChange !== null && changeType && (
           <div key={animationKey} className={`${styles.moneyChange} ${changeType === 'add' ? styles.moneyAdded : styles.moneySubbed}`}>
-            {changeType === 'add' ? `+ ${formatMoney(moneyChange)} $` : `- ${formatMoney(moneyChange)} $`}
+            {/* Убрали знаки доллара из всплывающих анимаций */}
+            {changeType === 'add' ? `+ ${formatMoney(moneyChange)}` : `- ${formatMoney(moneyChange)}`}
           </div>
         )}
       </div>

@@ -22,12 +22,12 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-end; /* Все элементы выстраиваются по правому краю */
+  justify-content: flex-end;
   padding: 0 10px;
   box-sizing: border-box;
 }
 
-/* 1. БЛОК ИГРОКА (Человек SVG + Онлайн + Айди) */
+/* 1. БЛОК ИГРОКА */
 .userContainer {
   display: flex;
   flex-direction: column;
@@ -64,7 +64,7 @@
   padding-left: 2px; 
 }
 
-/* 2. БЛОК БРЕНДИНГА (Лого SVG + Название проекта SVG) */
+/* 2. БЛОК БРЕНДИНГА */
 .brandRow {
   display: flex;
   flex-direction: row;
@@ -87,7 +87,7 @@
   object-fit: contain;
 }
 
-/* 3. БЛОК СЕРВЕРА (Счетчик номера + Название сервера) */
+/* 3. БЛОК СЕРВЕРА */
 .serverContainer {
   display: flex;
   align-items: center;
@@ -131,6 +131,7 @@
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: rgba(43, 42, 47, 0.9);
 }
 
 .indicatorsGroup {
@@ -234,7 +235,7 @@
   top: 0;
   width: 110px;
   height: 100%;
-  background: #212024;
+  background: rgba(33, 32, 36, 0.9);
   border-left: 1px solid rgba(0, 0, 0, 0.15);
 }
 
@@ -245,25 +246,24 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px; 
+  gap: 5px; /* Уменьшили с 10px до 5px, чтобы SVG доллар прижался поближе к тексту денег */
 }
 
 .moneyIcon {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 
 .moneyText {
   font-size: 22px;
   font-weight: 900;
-  color: #63b946; 
+  color: #ffffff; /* Изменили цвет денег со старого зеленого на чисто белый */
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
   white-space: nowrap;
 }
 
 /* === СТИЛИ СИММЕТРИЧНОЙ ЗЕРКАЛЬНОЙ АНИМАЦИИ === */
-
 .moneyChange {
   position: absolute;
   right: 10px; 
@@ -286,42 +286,41 @@
   animation: flyDownStrict 1.5s ease-in-out forwards;
 }
 
-/* АНИМАЦИЯ ПРИБАВЛЕНИЯ: Вылетает справа, скользит влево под балансом и гаснет ровно под цифрами */
+/* АНИМАЦИИ ВЫЛЕТА */
 @keyframes flyAddMirror {
   0% {
-    transform: translate(60px, 25px); /* Далеко справа на линии под текстом */
+    transform: translate(60px, 25px);
     opacity: 0;
   }
   25% {
-    transform: translate(30px, 25px); /* Плавно идет влево */
+    transform: translate(30px, 25px);
     opacity: 1;
   }
   75% {
-    transform: translate(0, 25px); /* Дошел до стартовой точки под деньгами */
+    transform: translate(0, 25px);
     opacity: 1;
   }
   100% {
-    transform: translate(0, 15px); /* Чуть-чуть приблизился к низу текста денег и мгновенно растаял */
+    transform: translate(0, 15px);
     opacity: 0;
   }
 }
 
-/* АНИМАЦИЯ УБАВЛЕНИЯ: Падает строго вниз, затем улетает ровно вправо */
 @keyframes flyDownStrict {
   0% {
     transform: translate(0, 0);
     opacity: 0;
   }
   25% {
-    transform: translate(0, 25px); /* Падает строго вниз */
+    transform: translate(0, 25px);
     opacity: 1;
   }
   75% {
-    transform: translate(30px, 25px); /* Уходит строго вправо */
+    transform: translate(30px, 25px);
     opacity: 1;
   }
   100% {
-    transform: translate(60px, 25px); /* Исчезает вдали */
+    transform: translate(60px, 25px);
     opacity: 0;
   }
 }
