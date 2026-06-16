@@ -44,7 +44,7 @@ export default function App() {
   const [showHud, setShowHud] = useState<boolean>(false);
   const [showSpeedometer, setShowSpeedometer] = useState<boolean>(false);
   const [showInventory, setShowInventory] = useState<boolean>(false);
-  const [showPause, setShowPause] = useState<boolean>(true);
+  const [showPause, setShowPause] = useState<boolean>(false);
 
   const [hudData, setHudData] = useState<HudData>({
     health: 100,
