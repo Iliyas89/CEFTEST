@@ -76,28 +76,6 @@ export default function App() {
     return val === 1 || val === "1" || val === "true";
   };
 
-  const isInteractiveOpen = showInventory || showPause;
-
-  // --- ДОБАВЛЕНО: Управление курсором мыши в игре ---
-  useEffect(() => {
-    if (window.cef) {
-      try {
-        // Проверяем стандартный метод фокуса для SAMP CEF плагинов
-        if (typeof window.cef.set_focus === 'function') {
-          window.cef.set_focus(isInteractiveOpen);
-        } else if (typeof window.cef.show_cursor === 'function') {
-          window.cef.show_cursor(isInteractiveOpen);
-        } else {
-          // Если у тебя кастомный лаунчер/обработчик через события:
-          window.cef.emit('cef:setInterfaceFocus', isInteractiveOpen);
-        }
-      } catch (error) {
-        console.error("Не удалось переключить фокус мыши в CEF:", error);
-      }
-    }
-  }, [isInteractiveOpen]);
-  // --------------------------------------------------
-
   useEffect(() => {
     window.toggleHud = (status: boolean) => setShowHud(status);
     window.toggleSpeedometer = (status: boolean) => setShowSpeedometer(status);
@@ -137,6 +115,7 @@ export default function App() {
         window.cef.on('toggleSpeedometer', (val: any) => setShowSpeedometer(parseCefStatus(val)));
         window.cef.on('toggleInventory', (val: any) => setShowInventory(parseCefStatus(val)));
         
+        // --- ИСПРАВЛЕНО: переключение паузы (без аргументов) ---
         window.cef.on('togglePause', () => {
           setShowPause(prev => !prev);
         });
@@ -159,16 +138,9 @@ export default function App() {
         window.cef.emit('game:data:pollPlayerStats', true, 50);
         window.cef.emit("OnCefInterfaceReady");
         
-        // На случай, если интерфейс открылся РАНЬШЕ, чем проинициализировался window.cef
-        if (activePauseOrInv) {
-           if (typeof window.cef.set_focus === 'function') window.cef.set_focus(true);
-        }
-
         clearInterval(checkCefInterval);
       }
     }, 100);
-
-    const activePauseOrInv = isInteractiveOpen;
 
     return () => {
       clearInterval(checkCefInterval);
@@ -183,6 +155,8 @@ export default function App() {
       }
     };
   }, []);
+
+  const isInteractiveOpen = showInventory || showPause;
 
   return (
     <div style={{ 

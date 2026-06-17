@@ -18,6 +18,7 @@ declare global {
     engine?: {
       call: (eventName: string, ...args: any[]) => void;
     };
+    cef?: any;
   }
 }
 
@@ -31,7 +32,7 @@ const MENU_ITEMS: IMenuItem[] = [
 
 const UPDATE_CARDS: IUpdateCard[] = [{ id: 1 }, { id: 2 }];
 
-// --- СТИЛИ И АНИМАЦИИ (Вынесено в CSS для обработки на уровне чипа GPU) ---
+// --- СТИЛИ И АНИМАЦИИ (остаются без изменений) ---
 const CSS_OPTIMIZATIONS = `
   @keyframes slideInLeft {
     0% { transform: translate3d(-100%, 0, 0); opacity: 0; }
@@ -60,7 +61,6 @@ const CSS_OPTIMIZATIONS = `
     transform-style: preserve-3d;
   }
 
-  /* Профессиональная оптимизация кнопок: работаем через слои Opacity на GPU */
   .menu-btn {
     position: relative;
     width: 100%;
@@ -239,15 +239,107 @@ const Timer: React.FC = () => {
   return <span style={STYLES.timerBadge}>{time}</span>;
 };
 
+// --- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ ---
+const ConfirmDialog: React.FC<{
+  visible: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}> = ({ visible, onConfirm, onCancel }) => {
+  if (!visible) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      backdropFilter: 'blur(4px)',
+    }}>
+      <div style={{
+        backgroundColor: '#161618',
+        borderRadius: '12px',
+        padding: '32px 40px',
+        maxWidth: '400px',
+        width: '90%',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
+      }}>
+        <h3 style={{
+          color: 'white',
+          fontSize: '1.2rem',
+          fontWeight: 700,
+          margin: '0 0 8px 0',
+          letterSpacing: '0.02em',
+        }}>Выход из игры</h3>
+        <p style={{
+          color: '#A0A0A8',
+          fontSize: '0.95rem',
+          margin: '0 0 24px 0',
+          lineHeight: '1.5',
+        }}>
+          Вы действительно хотите выйти из игры?
+        </p>
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          justifyContent: 'flex-end',
+        }}>
+          <button
+            onClick={onCancel}
+            style={{
+              padding: '8px 24px',
+              borderRadius: '6px',
+              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'transparent',
+              color: '#A0A0A8',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+          >
+            ОТМЕНА
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              padding: '8px 24px',
+              borderRadius: '6px',
+              border: 'none',
+              background: '#CC9D48',
+              color: '#0A0A0B',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'opacity 0.15s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+          >
+            ДА
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- ОСНОВНОЙ КОМПОНЕНТ ---
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('resume');
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
   const activeTabRef = useRef<string>(activeTab);
 
   useEffect(() => {
     activeTabRef.current = activeTab;
   }, [activeTab]);
 
+  // Функция для отправки событий в клиент (серверные команды)
   const triggerClient = (action: string, sound: 'click' | 'hover') => {
     if (window.engine) {
       window.engine.call('cef:pause:playSound', sound);
@@ -257,6 +349,16 @@ export const App: React.FC = () => {
     }
   };
 
+  // === ИСПРАВЛЕНО: отправка события без аргументов ===
+  const closePause = () => {
+    if (window.cef) {
+      window.cef.emit('togglePause'); // без параметров
+    } else {
+      console.warn('[Pause] window.cef недоступен');
+    }
+  };
+
+  // Обработчик клавиш
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const currentTab = activeTabRef.current;
@@ -277,13 +379,24 @@ export const App: React.FC = () => {
       else if (e.key === 'Enter') {
         e.preventDefault();
         const currentItem = MENU_ITEMS[currentIndex];
-        if (currentItem) {
+        if (!currentItem) return;
+
+        if (currentItem.id === 'exit') {
+          // Показываем диалог подтверждения
+          setShowConfirm(true);
+        } else {
+          // Для остальных пунктов (включая resume) выполняем действие
+          if (currentItem.id === 'resume') {
+            closePause(); // закрываем паузу
+          }
           triggerClient(currentItem.action, 'click');
         }
       } 
       else if (e.key === 'Escape') {
         e.preventDefault();
-        triggerClient('server:pause:resume', 'click');
+        // ESC закрывает паузу (как и кнопка "ПРОДОЛЖИТЬ")
+        closePause();
+        // опционально: triggerClient('server:pause:resume', 'click');
       }
     };
 
@@ -291,11 +404,44 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Обработчик клика по пункту меню
+  const handleMenuItemClick = (item: IMenuItem) => {
+    if (item.id === 'exit') {
+      setShowConfirm(true);
+      return;
+    }
+
+    if (item.id === 'resume') {
+      closePause();
+    }
+    triggerClient(item.action, 'click');
+  };
+
+  const handleConfirmExit = () => {
+    // Отправляем команду на сервер
+    triggerClient('server:pause:exitGame', 'click');
+    // Закрываем паузу
+    closePause();
+    // Скрываем диалог
+    setShowConfirm(false);
+  };
+
+  const handleCancelExit = () => {
+    setShowConfirm(false);
+  };
+
   return (
     <div style={STYLES.container}>
       <style>{CSS_OPTIMIZATIONS}</style>
       
       <div style={STYLES.darkOverlay} />
+
+      {/* Модальное окно подтверждения */}
+      <ConfirmDialog
+        visible={showConfirm}
+        onConfirm={handleConfirmExit}
+        onCancel={handleCancelExit}
+      />
 
       {/* ОСНОВНОЙ КОНТЕНТ */}
       <div style={STYLES.mainContent}>
@@ -319,10 +465,7 @@ export const App: React.FC = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    triggerClient(item.action, 'click');
-                  }}
+                  onClick={() => handleMenuItemClick(item)}
                   onMouseEnter={() => {
                     if (activeTabRef.current !== item.id) {
                       setActiveTab(item.id);
@@ -331,7 +474,6 @@ export const App: React.FC = () => {
                   }}
                   className={`menu-btn ${isActive ? 'menu-btn-active' : ''}`}
                 >
-                  {/* ИНДИКАТОР ТЕПЕРЬ ТУТ: Ровно по левому краю всей кнопки */}
                   {isActive && <div style={STYLES.activeIndicator} />}
 
                   <div className="menu-btn-content">
