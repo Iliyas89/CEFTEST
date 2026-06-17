@@ -115,9 +115,9 @@ export default function App() {
         window.cef.on('toggleSpeedometer', (val: any) => setShowSpeedometer(parseCefStatus(val)));
         window.cef.on('toggleInventory', (val: any) => setShowInventory(parseCefStatus(val)));
         
-        // --- ИСПРАВЛЕНО: переключение паузы (без аргументов) ---
-        window.cef.on('togglePause', () => {
-          setShowPause(prev => !prev);
+        // --- ИСПРАВЛЕНО: обработка с аргументом ---
+        window.cef.on('togglePause', (val: any) => {
+          setShowPause(parseCefStatus(val));
         });
 
         window.cef.on('updateHUD', (rawData: any) => {

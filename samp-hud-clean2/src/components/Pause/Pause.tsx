@@ -32,7 +32,7 @@ const MENU_ITEMS: IMenuItem[] = [
 
 const UPDATE_CARDS: IUpdateCard[] = [{ id: 1 }, { id: 2 }];
 
-// --- СТИЛИ И АНИМАЦИИ (остаются без изменений) ---
+// --- СТИЛИ И АНИМАЦИИ ---
 const CSS_OPTIMIZATIONS = `
   @keyframes slideInLeft {
     0% { transform: translate3d(-100%, 0, 0); opacity: 0; }
@@ -349,10 +349,10 @@ export const App: React.FC = () => {
     }
   };
 
-  // === ИСПРАВЛЕНО: отправка события без аргументов ===
+  // === ИСПРАВЛЕНО: закрытие паузы с аргументом 0 ===
   const closePause = () => {
     if (window.cef) {
-      window.cef.emit('togglePause'); // без параметров
+      window.cef.emit('togglePause', 0);
     } else {
       console.warn('[Pause] window.cef недоступен');
     }
@@ -382,21 +382,17 @@ export const App: React.FC = () => {
         if (!currentItem) return;
 
         if (currentItem.id === 'exit') {
-          // Показываем диалог подтверждения
           setShowConfirm(true);
         } else {
-          // Для остальных пунктов (включая resume) выполняем действие
           if (currentItem.id === 'resume') {
-            closePause(); // закрываем паузу
+            closePause();
           }
           triggerClient(currentItem.action, 'click');
         }
       } 
       else if (e.key === 'Escape') {
         e.preventDefault();
-        // ESC закрывает паузу (как и кнопка "ПРОДОЛЖИТЬ")
         closePause();
-        // опционально: triggerClient('server:pause:resume', 'click');
       }
     };
 
@@ -420,9 +416,11 @@ export const App: React.FC = () => {
   const handleConfirmExit = () => {
     // Отправляем команду на сервер
     triggerClient('server:pause:exitGame', 'click');
-    // Закрываем паузу
-    closePause();
-    // Скрываем диалог
+    // Закрываем паузу и выходим из игры
+    if (window.cef) {
+      window.cef.emit('exitGame');
+      window.cef.emit('togglePause', 0);
+    }
     setShowConfirm(false);
   };
 
