@@ -4,6 +4,7 @@ import Speedometer from './components/Speedometer/Speedometer';
 import Inventory from './components/Inventory/Inventory';
 import Pause from './components/Pause/Pause';
 import Map from './components/Map/Map';
+import UniversalMenu from './components/UniversalMenu/UniversalMenu'; // Импортируем наше новое меню
 
 interface HudData {
   health?: number;
@@ -35,6 +36,8 @@ declare global {
     toggleSpeedometer?: (status: boolean) => void;
     toggleInventory?: (status: boolean) => void;
     togglePause?: (status: boolean) => void;
+    showUniversalMenu?: (dataJson: string | object) => void; // Добавили для TS
+    hideUniversalMenu?: () => void;                          // Добавили для TS
     updateHUD?: (dataJson: string | object) => void;
     updateSpeedometer?: (dataJson: string | object) => void;
     cef?: any;
@@ -47,6 +50,10 @@ export default function App() {
   const [showInventory, setShowInventory] = useState<boolean>(false);
   const [showPause, setShowPause] = useState<boolean>(false);
   const [showMap, setShowMap] = useState<boolean>(false);
+  
+  // Стейты для универсального меню
+  const [showMenu, setShowMenu] = useState<boolean>(true);
+  const [menuConfig, setMenuConfig] = useState<any>(null);
 
   const [hudData, setHudData] = useState<HudData>({
     health: 100,
@@ -106,8 +113,25 @@ export default function App() {
       }
     };
 
+    // Функция обработки данных для универсального меню
+    const processMenuData = (dataJsonString: string | object) => {
+      try {
+        const parsedData = typeof dataJsonString === 'string'
+          ? JSON.parse(dataJsonString)
+          : dataJsonString;
+        setMenuConfig(parsedData);
+        setShowMenu(true);
+      } catch (error) {
+        console.error("Ошибка парсинга JSON в showUniversalMenu:", error);
+      }
+    };
+
     window.updateHUD = processHudData;
     window.updateSpeedometer = processSpeedoData;
+    
+    // Биндим глобальные вызовы для консоли / Pawn напрямую через App
+    window.showUniversalMenu = processMenuData;
+    window.hideUniversalMenu = () => setShowMenu(false);
 
     let checkCefInterval = setInterval(() => {
       if (window.cef) {
@@ -127,6 +151,16 @@ export default function App() {
 
         window.cef.on('toggleMap', (val: any) => {
           setShowMap(parseCefStatus(val));
+        });
+
+        // Слушаем триггеры вызова меню от сервера SAMP
+        window.cef.on('showUniversalMenu', (rawData: any) => {
+          const data = Array.isArray(rawData) ? rawData[0] : rawData;
+          if (data) processMenuData(data);
+        });
+
+        window.cef.on('hideUniversalMenu', () => {
+          setShowMenu(false);
         });
 
         window.cef.on('updateHUD', (rawData: any) => {
@@ -160,6 +194,8 @@ export default function App() {
         window.cef.off('togglePause');
         window.cef.off('openInventory');
         window.cef.off('toggleMap');
+        window.cef.off('showUniversalMenu'); // Чистим за собой
+        window.cef.off('hideUniversalMenu'); // Чистим за собой
         window.cef.off('updateHUD');
         window.cef.off('updateSpeedometer');
         window.cef.off('game:data:playerStats');
@@ -167,7 +203,8 @@ export default function App() {
     };
   }, []);
 
-  const isInteractiveOpen = showInventory || showPause || showMap;
+  // ДОБАВИЛИ showMenu сюда! Теперь мышка автоматом включится, когда меню открыто!
+  const isInteractiveOpen = showInventory || showPause || showMap || showMenu;
 
   return (
     <div style={{ 
@@ -202,6 +239,12 @@ export default function App() {
       {showMap && (
         <Map visible={showMap} onClose={() => setShowMap(false)} />
       )}
+
+      {/* РЕНДЕРИМ УНИВЕРСАЛЬНОЕ МЕНЮ И ПЕРЕДАЕМ КОНФИГ */}
+      {showMenu && menuConfig && (
+        <UniversalMenu config={menuConfig} onClose={() => setShowMenu(false)} />
+      )}
+
     </div>
   );
 }

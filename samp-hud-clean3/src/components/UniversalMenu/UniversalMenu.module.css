@@ -1,0 +1,259 @@
+.menuOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6); /* Слегка осветлили оверлей, чтобы лучше читался блюр */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  font-family: 'Burbank', sans-serif;
+  user-select: none;
+}
+
+.menuWindow {
+  /* 1. Сделали фон более прозрачным (0.88 и 0.92 вместо 0.96) */
+  background: radial-gradient(circle at top left, rgba(22, 21, 26, 0.88) 0%, rgba(10, 10, 12, 0.92) 100%);
+  
+  /* Сделали рамку чуть выразительнее */
+  border: 1px solid rgba(204, 157, 72, 0.25);
+  border-radius: 12px;
+  width: 480px;
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  
+  /* 2. Добавили мягкое внешнее золотое свечение (последняя строка в box-shadow) */
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 
+              inset 0 0 30px rgba(204, 157, 72, 0.02),
+              0 0 25px rgba(204, 157, 72, 0.06); 
+              
+  /* Усилили размытие заднего плана игры */
+  backdrop-filter: blur(16px);
+  padding: 26px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* КРЕСТИК ЗАКРЫТИЯ (Интерактивный) */
+.closeCross {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  background: none;
+  border: none;
+  outline: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 8px;
+}
+
+.closeCross:hover {
+  color: #CC9D48;
+  background: rgba(204, 157, 72, 0.1);
+  transform: scale(1.08); /* Крестик плавно увеличивается при наведении */
+}
+
+.closeCross:active {
+  transform: scale(0.92);
+}
+
+.animateAppear {
+  animation: appear 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.menuHeader {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  padding-right: 40px;
+}
+
+.menuTitle {
+  color: #fff;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Добавили тень тексту заголовка */
+}
+
+.menuHeaderLine {
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, #CC9D48 0%, rgba(204, 157, 72, 0) 100%);
+  margin-top: 8px;
+}
+
+.menuBody {
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 22px;
+}
+
+/* Скроллбар */
+.menuBody::-webkit-scrollbar {
+  width: 4px;
+}
+.menuBody::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.01);
+}
+.menuBody::-webkit-scrollbar-thumb {
+  background: #CC9D48;
+  border-radius: 10px;
+}
+
+.menuTextContent {
+  color: #d1d1d6; /* Сделали текст описания чуть ярче для идеальной читаемости на прозрачном фоне */
+  font-size: 15px;
+  line-height: 1.55;
+  white-space: pre-line;
+  margin: 0 0 16px 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menuListItem {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 12px 16px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative; /* Для позиционирования светящейся полоски */
+  overflow: hidden;   /* Чтобы полоска не вылезала за скругления */
+  
+  animation: itemFadeIn 0.2s ease backwards;
+}
+
+@keyframes itemFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.menuListItem:nth-child(1) { animation-delay: 0.03s; }
+.menuListItem:nth-child(2) { animation-delay: 0.06s; }
+.menuListItem:nth-child(3) { animation-delay: 0.09s; }
+.menuListItem:nth-child(4) { animation-delay: 0.12s; }
+.menuListItem:nth-child(5) { animation-delay: 0.15s; }
+.menuListItem:nth-child(6) { animation-delay: 0.18s; }
+
+.menuListItem:hover {
+  background: rgba(204, 157, 72, 0.06);
+  border-color: rgba(204, 157, 72, 0.2);
+  padding-left: 20px; /* Эффект легкого сдвига вправо при наведении */
+}
+
+.menuListItem.active {
+  background: linear-gradient(90deg, rgba(204, 157, 72, 0.18) 0%, rgba(204, 157, 72, 0.03) 100%);
+  border-color: rgba(204, 157, 72, 0.6);
+  padding-left: 20px; /* Фиксируем сдвиг для активного элемента */
+}
+
+/* 3. ЗОЛОТОЙ ВЕРТИКАЛЬНЫЙ ИНДИКАТОР ДЛЯ АКТИВНОГО СТРОКИ */
+.menuListItem.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px; /* Толщина полоски */
+  background: #CC9D48;
+  box-shadow: 2px 0 10px #CC9D48; /* Эффект неонового свечения полоски */
+}
+
+.itemNumber {
+  color: #CC9D48;
+  font-weight: 700;
+  margin-right: 12px;
+}
+
+.itemText {
+  color: #ffffff;
+  font-size: 15px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.menuFooter {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: space-between;
+  margin-top: auto;
+  box-sizing: border-box;
+}
+
+.menuBtn {
+  font-family: inherit;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+  outline: none;
+  flex: 1;
+  text-align: center;
+}
+
+.menuBtn:active {
+  transform: scale(0.97);
+  transition: transform 0.05s ease;
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, #CC9D48 0%, #8C6623 100%);
+  color: #050505;
+  box-shadow: 0 4px 15px rgba(204, 157, 72, 0.2);
+}
+.btnPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(204, 157, 72, 0.35);
+}
+.btnPrimary:active {
+  transform: scale(0.97) translateY(0);
+}
+
+.btnSecondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: #b5b5b5;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+.btnSecondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.btnDanger {
+  background: linear-gradient(135deg, #d93838 0%, #a62424 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(217, 56, 56, 0.15);
+}
+.btnDanger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(217, 56, 56, 0.3);
+}
+.btnDanger:active {
+  transform: scale(0.97) translateY(0);
+}
